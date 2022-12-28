@@ -20,6 +20,9 @@ public class Player : MonoBehaviour
 
     public GameManager.PlayerState state; //플레이어의 상태 (노말,숨을 수 있는,숨은)
     Rigidbody rigid; //리지드바디
+
+    RaycastHit hit;
+    public float RayDistance = 2; //사거리
     private void Start()
     {
         Cursor.visible = false; //커서 지우기
@@ -150,8 +153,6 @@ public class Player : MonoBehaviour
             GameManager.instance.CanHideText.SetActive(false); //숨기 텍스트 비활성화
         }
     }
-    RaycastHit hit;
-    public float RayDistance = 2; //사거리
     private void OnDrawGizmos()
     {
         Debug.DrawRay(cam.transform.position, cam.transform.forward * RayDistance, Color.red);
