@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 987d139c88fd08648837e425c221998f, type: 3}
+  m_Name: PlayerStatus
+  m_EditorClassIdentifier: 
+  MoveSpeed: 2
+  walkSpeed: 2
+  RunSpeed: 5
+  Stamina: 1000
+  Batery: 2732.5
+  MaxBatery: 5000
+  camSpeed: 2
+  isflash: 0

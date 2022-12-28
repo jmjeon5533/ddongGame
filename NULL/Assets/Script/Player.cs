@@ -7,15 +7,19 @@ public class Player : MonoBehaviour
 {
     public Camera cam; //플레이어 카메라
     public GameObject flash; //손전등 기능
-    public int MoveSpeed = 5, //이동 합계속도
-        walkSpeed = 5, //걷는 속도
-        RunSpeed = 15; //뛰는 속도
-    public float Stamina = 1000; //기력(스태미나)
-    public float camSpeed = 2; //카메라 감도
+    //public int MoveSpeed = 5, //이동 합계속도
+    //    walkSpeed = 5, //걷는 속도
+    //    RunSpeed = 15; //뛰는 속도
+    //public float Stamina = 1000; //기력(스태미나)
+    //public float Batery = 5000; //손전등 베터리
+    //public float MaxBatery = 5000; //최대 베터리
+    //public float camSpeed = 2; //카메라 감도
+    //public bool isflash = false; //손전등 전원 유무
+    public float CamfieldValue = 60;
     public GameObject HideObject; //숨을 오브젝트 (유동적으로 지정)
 
+    public PlayerStatus player;
     float xRotate; //카메라 계산
-    bool isflash = false; //손전등 전원 유무
     Vector3 HideOffPos; //숨고 나올 위치
 
     public GameManager.PlayerState state; //플레이어의 상태 (노말,숨을 수 있는,숨은)
@@ -28,10 +32,18 @@ public class Player : MonoBehaviour
         Cursor.visible = false; //커서 지우기
         Cursor.lockState = CursorLockMode.Locked; //커서 고정
         rigid = GetComponent<Rigidbody>(); //리지드바디 대입
+        StatInitial();
     }
     private void Update()
     {
         StateMove();//상태 변화
+    }
+    void StatInitial()
+    {
+        player.Stamina = 1000;
+        player.Batery = 5000; //손전등 베터리
+        player.MaxBatery = 5000; //최대 베터리
+        player.isflash = false;
     }
     void StateMove()
     {
@@ -70,6 +82,31 @@ public class Player : MonoBehaviour
                 print("Set");
             }
         }
+        StaminaSet();
+    }
+    void StaminaSet()
+    {
+        if (Input.GetKey(KeyCode.LeftShift) && player.Stamina > 0)
+        //쉬프트를 누른 상태로 스태미나가 있다면
+        {
+            player.Stamina--; //스태미나를 지우면서
+            player.MoveSpeed = player.RunSpeed; //더 빠르게 이동
+            CamfieldValue = Mathf.Lerp(CamfieldValue, 75, 0.1f);
+        }
+        else if (!Input.GetKey(KeyCode.LeftShift) && player.Stamina < 1000)
+        //쉬프트를 누르지 않고 스태미나가 있다면
+        {
+            player.Stamina += 0.5f; //스태미나를 점점 추가
+            player.MoveSpeed = player.walkSpeed; //기본 속도로 이동
+            CamfieldValue = Mathf.Lerp(CamfieldValue, 60, 0.1f);
+        }
+        else //스태미나가 없다면
+        {
+            player.MoveSpeed = player.walkSpeed; //기본 속도로 이동
+            CamfieldValue = Mathf.Lerp(CamfieldValue, 60, 0.1f);
+        }
+        GameManager.instance.StaminaSlider.value = player.Stamina;
+        cam.fieldOfView = CamfieldValue;
     }
     void Hide() //숨는 행동
     {
@@ -89,9 +126,9 @@ public class Player : MonoBehaviour
     }
     void CamMove() //카메라 움직임
     {
-        float yRotateSize = Input.GetAxis("Mouse X") * camSpeed;
+        float yRotateSize = Input.GetAxis("Mouse X") * player.camSpeed;
         float yRotate = transform.eulerAngles.y + yRotateSize;
-        float xRotateSize = -Input.GetAxis("Mouse Y") * camSpeed;
+        float xRotateSize = -Input.GetAxis("Mouse Y") * player.camSpeed;
         xRotate = Mathf.Clamp(xRotate + xRotateSize, -45, 80);
         transform.eulerAngles = new Vector3(0, yRotate, 0);
         cam.transform.eulerAngles = new Vector3(xRotate, yRotate + 90, 0);
@@ -102,37 +139,20 @@ public class Player : MonoBehaviour
     {
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        if (Input.GetKey(KeyCode.LeftShift) && Stamina > 0)
-            //쉬프트를 누른 상태로 스태미나가 있다면
-        {
-            Stamina--; //스태미나를 지우면서
-            MoveSpeed = RunSpeed; //더 빠르게 이동
-        }
-        else if (!Input.GetKey(KeyCode.LeftShift) && Stamina < 1000)
-            //쉬프트를 누르지 않고 스태미나가 있다면
-        {
-            Stamina += 0.5f; //스태미나를 점점 추가
-            MoveSpeed = walkSpeed; //기본 속도로 이동
-        }
-        else //스태미나가 없다면
-        {
-            MoveSpeed = walkSpeed; //기본 속도로 이동
-        }
-        Vector3 Move = new Vector3(h * MoveSpeed, 0, v * MoveSpeed);
+        Vector3 Move = new Vector3(h * player.MoveSpeed, 0, v * player.MoveSpeed);
         Vector3 lookforward = new Vector3(-transform.forward.x, 0, -transform.forward.z).normalized;
         Vector3 lookright = new Vector3(transform.right.x, 0, transform.right.z).normalized;
         Vector3 MoveDir = lookforward * Move.x + lookright * Move.z;
         rigid.velocity = new Vector3(MoveDir.x, rigid.velocity.y, MoveDir.z);
-
-        GameManager.instance.StaminaSlider.value = Stamina;
     }
     void FlashLight() //손전등
     {
         if (Input.GetKeyDown(KeyCode.F)) //F를 누르면
         {
-            isflash = !isflash; //손전등 상태 전환
+            player.isflash = !player.isflash; //손전등 상태 전환
         }
-        flash.SetActive(isflash); //전환한 상태로 실행
+        
+        flash.SetActive(player.isflash); //전환한 상태로 실행
     }
     void DrawRay() //사거리
     {
