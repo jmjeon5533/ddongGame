@@ -28,8 +28,8 @@ public class GameManager : MonoBehaviour
     }
     void Start()
     {
-        CanText.enabled = false;
-        CantExitText.enabled = false;
+        //CanText.enabled = false;
+        //CantExitText.enabled = false;
     }
 
     // Update is called once per frame
