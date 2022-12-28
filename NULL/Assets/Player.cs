@@ -131,26 +131,27 @@ public class Player : MonoBehaviour
         }
         flash.SetActive(isflash); //전환한 상태로 실행
     }
-    void DrawRay()
+    void DrawRay() //사거리
     {
         if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, RayDistance))
+            //사거리 안에 들어갔다면
         {
-            if (hit.collider.transform.CompareTag("HideObject"))
+            if (hit.collider.transform.CompareTag("HideObject")) //사거리에 들어온 것이 숨는 물체일 때
             {
-                HideObject = hit.collider.gameObject;
-                state = GameManager.PlayerState.CanHide;
-                GameManager.instance.CanHideText.SetActive(true);
+                HideObject = hit.collider.gameObject; //숨을 오브젝트로 설정
+                state = GameManager.PlayerState.CanHide; //숨을 수 있는 상태로 전환
+                GameManager.instance.CanHideText.SetActive(true); //숨기 텍스트 활성화
             }
         }
-        else
+        else //사거리에 들어가지 않았을 때
         {
-            HideObject = null;
-            state = GameManager.PlayerState.Normal;
-            GameManager.instance.CanHideText.SetActive(false);
+            HideObject = null; //숨을 오브젝트는 없음
+            state = GameManager.PlayerState.Normal; //기본 상태로 전환
+            GameManager.instance.CanHideText.SetActive(false); //숨기 텍스트 비활성화
         }
     }
     RaycastHit hit;
-    public float RayDistance = 2;
+    public float RayDistance = 2; //사거리
     private void OnDrawGizmos()
     {
         Debug.DrawRay(cam.transform.position, cam.transform.forward * RayDistance, Color.red);
