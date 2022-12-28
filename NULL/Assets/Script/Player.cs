@@ -7,22 +7,14 @@ public class Player : MonoBehaviour
 {
     public Camera cam; //플레이어 카메라
     public GameObject flash; //손전등 기능
-    //public int MoveSpeed = 5, //이동 합계속도
-    //    walkSpeed = 5, //걷는 속도
-    //    RunSpeed = 15; //뛰는 속도
-    //public float Stamina = 1000; //기력(스태미나)
-    //public float Batery = 5000; //손전등 베터리
-    //public float MaxBatery = 5000; //최대 베터리
-    //public float camSpeed = 2; //카메라 감도
-    //public bool isflash = false; //손전등 전원 유무
-    public float CamfieldValue = 60;
-    public GameObject HideObject; //숨을 오브젝트 (유동적으로 지정)
-
+    public float CamfieldValue = 60; //카메라 확대량
+    public GameObject useObject; //사용 오브젝트 (유동적으로 지정)
+    public GameManager.PlayerState state; //플레이어의 상태
     public PlayerStatus player;
+
     float xRotate; //카메라 계산
     Vector3 HideOffPos; //숨고 나올 위치
 
-    public GameManager.PlayerState state; //플레이어의 상태 (노말,숨을 수 있는,숨은)
     Rigidbody rigid; //리지드바디
 
     RaycastHit hit;
@@ -47,22 +39,16 @@ public class Player : MonoBehaviour
     }
     void StateMove()
     {
-        if (state == GameManager.PlayerState.Normal) //노말 상태에서는
+        if (state == GameManager.PlayerState.Normal) //노말 상태일 때
         {
-            //모든 동작 가능
-            CamMove();
             Moving();
-            FlashLight();
             DrawRay();
         }
-        else if (state == GameManager.PlayerState.CanHide) //숨을 수 있는 상태에서는
+        else if (state == GameManager.PlayerState.CanHide) //숨을 수 있는 상태일 때
         {
-            //모든 동작 포함
-            CamMove();
             Moving();
-            FlashLight();
             DrawRay();
-            if (/*Input.GetKeyDown(KeyCode.E)*/Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+            if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
             {
                 state = GameManager.PlayerState.Hide; //숨은 상태로 변환
                 HideOffPos = transform.position; //현재 위치 저장
@@ -72,16 +58,43 @@ public class Player : MonoBehaviour
         }
         else if (state == GameManager.PlayerState.Hide) //숨은 상태일 때 
         {
-            //움직일 수 없지만 카메라와 손전등은 사용가능
-            CamMove();
-            FlashLight();
-            if (/*Input.GetKeyDown(KeyCode.E)*/Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+            if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
             {
                 state = GameManager.PlayerState.CanHide; //숨을 수 있는 상태로 변환
                 HideOff(); //나오는 행동 실행
                 print("Set");
             }
         }
+        else if (state == GameManager.PlayerState.CanPick) //주울 수 있는 상태일 때
+        {
+            Moving();
+            DrawRay();
+            if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+            {
+                GameManager.instance.haveKey = true; //열쇠를 얻고
+                hit.collider.gameObject.SetActive(false); //열쇠를 지운다
+            }
+        }
+        else if (state == GameManager.PlayerState.CanExit) //문 앞일때
+        {
+            Moving();
+            DrawRay();
+            if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+            {
+                if (GameManager.instance.haveKey) //열쇠가 있으면
+                {
+                    GameManager.instance.Ending(); //탈출
+                }
+                else
+                {
+                    print("Can't Exit");
+                    GameManager.instance.CantExitText.enabled = true;
+                    //GameManager.instance.CantExitText.enabled = false;
+                }
+            }
+        }
+        CamMove();
+        FlashLight();
         StaminaSet();
     }
     void StaminaSet()
@@ -112,9 +125,9 @@ public class Player : MonoBehaviour
     {
         gameObject.GetComponent<CapsuleCollider>().enabled = false; //충돌 방지를 위해 콜라이더를 비활성화
         Destroy(gameObject.GetComponent<Rigidbody>()); //추락 방지를 위해 리지드바디 삭제
-        transform.position = HideObject.transform.position; //숨을 오브젝트의 위치로 이동
-        transform.eulerAngles = HideObject.transform.eulerAngles; //숨을 오브젝트의 시야로 변환
-        GameManager.instance.CanHideText.SetActive(false);
+        transform.position = useObject.transform.position; //숨을 오브젝트의 위치로 이동
+        transform.eulerAngles = useObject.transform.eulerAngles; //숨을 오브젝트의 시야로 변환
+        GameManager.instance.CanText.enabled = false;
     }
     void HideOff() //나오는 행동
     {
@@ -157,21 +170,37 @@ public class Player : MonoBehaviour
     void DrawRay() //사거리
     {
         if (Physics.Raycast(cam.transform.position, cam.transform.forward, out hit, RayDistance))
-            //사거리 안에 들어갔다면
         {
-            if (hit.collider.transform.CompareTag("HideObject")) //사거리에 들어온 것이 숨는 물체일 때
+            switch (hit.collider.tag)
             {
-                HideObject = hit.collider.gameObject; //숨을 오브젝트로 설정
-                state = GameManager.PlayerState.CanHide; //숨을 수 있는 상태로 전환
-                GameManager.instance.CanHideText.SetActive(true); //숨기 텍스트 활성화
+                case "HideObject": //사거리에 들어온 것이 숨는 물체일 때
+                    UseObjectFunction(GameManager.PlayerState.CanHide, "숨기");
+                    //숨기 상태로 전환 & 숨기 텍스트
+                    break;
+                case "Exit": //사거리에 들어온 것이 출구일 때
+                    state = GameManager.PlayerState.CanExit;
+                    GameManager.instance.CanText.text = "열기"; //텍스트 열기로 변환
+                    GameManager.instance.CanText.enabled = true; //열기 텍스트 활성화
+                    break;
+                case "Key": //사거리에 들어온 것이 열쇠일 때
+                    UseObjectFunction(GameManager.PlayerState.CanPick, "줍기");
+                    //줍기 상태로 전환 & 줍기 텍스트
+                    break;
             }
         }
         else //사거리에 들어가지 않았을 때
         {
-            HideObject = null; //숨을 오브젝트는 없음
+            useObject = null; //숨을 오브젝트는 없음
             state = GameManager.PlayerState.Normal; //기본 상태로 전환
-            GameManager.instance.CanHideText.SetActive(false); //숨기 텍스트 비활성화
+            GameManager.instance.CanText.enabled = false;//숨기 텍스트 비활성화
         }
+    }
+    void UseObjectFunction(GameManager.PlayerState UseState,string text)
+    {
+        useObject = hit.collider.gameObject; //오브젝트 설정
+        state = UseState; //사용 상태로 전환
+        GameManager.instance.CanText.text = text; //텍스트 변환
+        GameManager.instance.CanText.enabled = true; //텍스트 활성화
     }
     private void OnDrawGizmos()
     {

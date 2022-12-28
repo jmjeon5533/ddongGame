@@ -10,17 +10,26 @@ public class GameManager : MonoBehaviour
     {
         Normal,
         CanHide,
-        Hide
+        Hide,
+        CanPick,
+        CanExit
     }
     public Slider StaminaSlider;
-    public GameObject CanHideText;
+    public Text CanText;
+    public Text CantExitText;
     public PlayerStatus playerStat;
     public Player player;
     public Image bateryImage;
+    public bool haveKey = false;
+    //public int haveitem;
+    void Awake()
+    {
+        instance = this;
+    }
     void Start()
     {
-        CanHideText.SetActive(false);
-        instance = this;
+        CanText.enabled = false;
+        CantExitText.enabled = false;
     }
 
     // Update is called once per frame
@@ -41,5 +50,9 @@ public class GameManager : MonoBehaviour
         }
         print(playerStat.Batery / playerStat.MaxBatery);
         bateryImage.fillAmount = playerStat.Batery / playerStat.MaxBatery;
+    }
+    public void Ending()
+    {
+        print("ending");
     }
 }
