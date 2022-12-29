@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -39,59 +40,56 @@ public class Player : MonoBehaviour
     }
     void StateMove()
     {
-        if (state == GameManager.PlayerState.Normal) //노말 상태일 때
-        {
-            Moving();
-            DrawRay();
-        }
-        else if (state == GameManager.PlayerState.CanHide) //숨을 수 있는 상태일 때
-        {
-            Moving();
-            DrawRay();
-            if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
-            {
-                state = GameManager.PlayerState.Hide; //숨은 상태로 변환
-                HideOffPos = transform.position; //현재 위치 저장
-                Hide(); //숨는 행동 실행
-                print("Hide");
-            }
-        }
-        else if (state == GameManager.PlayerState.Hide) //숨은 상태일 때 
-        {
-            if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
-            {
-                state = GameManager.PlayerState.CanHide; //숨을 수 있는 상태로 변환
-                HideOff(); //나오는 행동 실행
-                print("Set");
-            }
-        }
-        else if (state == GameManager.PlayerState.CanPick) //주울 수 있는 상태일 때
-        {
-            Moving();
-            DrawRay();
-            if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
-            {
-                GameManager.instance.haveKey = true; //열쇠를 얻고
-                hit.collider.gameObject.SetActive(false); //열쇠를 지운다
-            }
-        }
-        else if (state == GameManager.PlayerState.CanExit) //문 앞일때
-        {
-            Moving();
-            DrawRay();
-            if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
-            {
-                if (GameManager.instance.haveKey) //열쇠가 있으면
+        switch (state) {
+            case GameManager.PlayerState.Normal: //노말 상태일 때
+                    Moving();
+                    DrawRay();
+                break;
+            case GameManager.PlayerState.CanHide: //숨을 수 있는 상태일 때
+                    Moving();
+                    DrawRay();
+                    if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+                    {
+                        state = GameManager.PlayerState.Hide; //숨은 상태로 변환
+                        HideOffPos = transform.position; //현재 위치 저장
+                        Hide(); //숨는 행동 실행
+                        print("Hide");
+                    }
+                    break;
+            case GameManager.PlayerState.Hide: //숨은 상태일 때 
+                    if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+                    {
+                        state = GameManager.PlayerState.CanHide; //숨을 수 있는 상태로 변환
+                        HideOff(); //나오는 행동 실행
+                        print("Set");
+                    }
+                break;
+            case GameManager.PlayerState.CanPick: //주울 수 있는 상태일 때
+                    Moving();
+                    DrawRay();
+                    if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+                    {
+                        GameManager.instance.haveKey = true; //열쇠를 얻고
+                        hit.collider.gameObject.SetActive(false); //열쇠를 지운다
+                    }
+                break;
+            case GameManager.PlayerState.CanExit: //문 앞일때
+                Moving();
+                DrawRay();
+                if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
                 {
-                    GameManager.instance.Ending(); //탈출
+                    if (GameManager.instance.haveKey) //열쇠가 있으면
+                    {
+                        GameManager.instance.Ending(); //탈출
+                    }
+                    else
+                    {
+                        print("Can't Exit");
+                        GameManager.instance.CantExitText.enabled = true;
+                        //GameManager.instance.CantExitText.enabled = false;
+                    }
                 }
-                else
-                {
-                    print("Can't Exit");
-                    GameManager.instance.CantExitText.enabled = true;
-                    //GameManager.instance.CantExitText.enabled = false;
-                }
-            }
+                break;
         }
         CamMove();
         FlashLight();
