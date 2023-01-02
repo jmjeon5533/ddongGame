@@ -26,7 +26,7 @@ public class Player : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked; //커서 고정
         rigid = GetComponent<Rigidbody>(); //리지드바디 대입
         StatInitial();
-    }
+    }   
     private void Update()
     {
         StateMove();//상태 변화
@@ -37,6 +37,7 @@ public class Player : MonoBehaviour
         player.Batery = 5000; //손전등 베터리
         player.MaxBatery = 5000; //최대 베터리
         player.isflash = false;
+        player.isQuest = 0; //퀘스트 진행도
     }
     void StateMove()
     {
@@ -78,22 +79,45 @@ public class Player : MonoBehaviour
                 DrawRay();
                 if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
                 {
-                    if (GameManager.instance.haveKey) //열쇠가 있으면
+                    if (GameManager.instance.haveKey && player.isQuest >= 3) //열쇠가 있고 퀘스트를 3개 클리어했을 때
                     {
                         GameManager.instance.Ending(); //탈출
                     }
-                    else
+                    else 
                     {
-                        print("Can't Exit");
-                        GameManager.instance.CantExitText.enabled = true;
-                        //GameManager.instance.CantExitText.enabled = false;
+                        StartCoroutine(CantExit()); //탈출불가
                     }
                 }
                 break;
+            case GameManager.PlayerState.CanTalk: //NPC 앞일때
+                Moving();
+                DrawRay();
+                if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+                {
+                    print("Text");
+                    //GameManager.instance.NPCTextSetting(); //시간을 멈추고 Text 진행
+                }
+                break;
+
         }
         CamMove();
         FlashLight();
         StaminaSet();
+    }
+    IEnumerator CantExit()
+    {
+        if (!GameManager.instance.haveKey)
+        {
+            GameManager.instance.CantExitText.text = "열쇠가 부족합니다";
+        }
+        else
+        {
+            GameManager.instance.CantExitText.text = "클리어하지 못한 퀘스트가 있습니다";
+        }
+        print("Can't Exit");
+        GameManager.instance.CantExitText.enabled = true;
+        yield return new WaitForSeconds(2);
+        GameManager.instance.CantExitText.enabled = false;
     }
     void StaminaSet()
     {
@@ -183,6 +207,9 @@ public class Player : MonoBehaviour
                 case "Key": //사거리에 들어온 것이 열쇠일 때
                     UseObjectFunction(GameManager.PlayerState.CanPick, "줍기");
                     //줍기 상태로 전환 & 줍기 텍스트
+                    break;
+                case "NPC":
+                    UseObjectFunction(GameManager.PlayerState.CanTalk, "대화");
                     break;
             }
         }

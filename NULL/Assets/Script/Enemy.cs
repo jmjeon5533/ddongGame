@@ -23,7 +23,14 @@ public class Enemy : MonoBehaviour
     }
     void EnemyAI()
     {
-        nav.SetDestination(player.transform.position);
+        if (player.GetComponent<Player>().state != GameManager.PlayerState.Hide)
+        {
+            nav.SetDestination(player.transform.position);
+        }
+        else
+        {
+            nav.SetDestination(transform.position);
+        }
     }
     void DrawRay()
     {
@@ -31,8 +38,15 @@ public class Enemy : MonoBehaviour
         {
             if (hit.collider.CompareTag("Player"))
             {
-
+                
             }
+        }
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.CompareTag("Player"))
+        {
+            GameManager.instance.GameOver();
         }
     }
     private void OnDrawGizmos()

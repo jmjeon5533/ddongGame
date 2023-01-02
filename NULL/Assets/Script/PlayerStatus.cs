@@ -13,4 +13,5 @@ public class PlayerStatus : ScriptableObject
     public float MaxBatery = 5000; //최대 베터리
     public float camSpeed = 2; //카메라 감도
     public bool isflash = false; //손전등 전원 유무
+    public int isQuest;
 }
