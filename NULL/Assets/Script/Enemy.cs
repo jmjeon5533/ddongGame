@@ -5,11 +5,14 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
-    public Transform MovePoint;
+    public Transform[] MovePoint;
     public GameObject player;
     NavMeshAgent nav;
     RaycastHit hit;
     Vector3 MoveRot;
+    public float curtime, Movecooltime = 7;
+    public bool IsCastPlayer = false;
+    public float RayDistance;
     void Start()
     {
         nav = GetComponent<NavMeshAgent>();
@@ -20,37 +23,87 @@ public class Enemy : MonoBehaviour
     {
         EnemyAI();
         DrawRay();
+        MoveRot = (player.transform.position - transform.position).normalized;
     }
     void EnemyAI()
     {
-        if (player.GetComponent<Player>().state != GameManager.PlayerState.Hide)
+        if (IsCastPlayer)
         {
-            nav.SetDestination(player.transform.position);
+            if (GameManager.instance.player.state == GameManager.PlayerState.Hide)
+            {
+                if (!GameManager.instance.playerStat.isflash)
+                {
+                    curtime += Time.deltaTime;
+                    if (curtime >= Movecooltime)
+                    {
+                        IsCastPlayer = false;
+                    }
+                    if (Vector3.Distance(player.transform.position,transform.position) <= 0.7f)
+                    {
+                        GameManager.instance.GameOver();
+                    }
+                }
+                else
+                {
+                    Dead();
+                }
+            }
+            else
+            {
+                Dead();
+            }
         }
         else
         {
-            nav.SetDestination(transform.position);
-        }
-    }
-    void DrawRay()
-    {
-        if(Physics.Raycast(transform.position,transform.forward, out hit,1))
-        {
-            if (hit.collider.CompareTag("Player"))
+            if (Mathf.Abs(nav.velocity.x) <= 0 || Mathf.Abs(nav.velocity.z) <= 0)
             {
-                
+                curtime += Time.deltaTime;
+                if (curtime >= Movecooltime)
+                {
+                    print(nav.velocity);
+                    nav.SetDestination(MovePoint[Random.Range(0, 3)].position);
+                    curtime = 0;
+                }
+
             }
         }
     }
-    private void OnCollisionEnter(Collision collision)
+    void Dead()
     {
-        if (collision.collider.CompareTag("Player"))
+        nav.SetDestination(player.transform.position);
+        curtime = 0;
+        if (nav.remainingDistance < 1.2f && nav.remainingDistance > 1f)
         {
             GameManager.instance.GameOver();
         }
     }
+    void DrawRay()
+    {
+        int layerMask = (-1) - (1 << LayerMask.NameToLayer("HideObject"));
+        if (Physics.Raycast(transform.position, MoveRot, out hit, RayDistance, layerMask))
+        {
+            if (hit.collider.CompareTag("Player"))
+            {
+
+                if (GameManager.instance.player.state == GameManager.PlayerState.Hide)
+                {
+                    if (GameManager.instance.playerStat.isflash)
+                    {
+                        IsCastPlayer = true;
+                        print("°¨ÁöµÊ!");
+                    }
+                }
+                else
+                {
+                    IsCastPlayer = true;
+                    print("°¨ÁöµÊ!");
+                }
+                print(hit.collider.gameObject.name);
+            }
+        }
+    }
     private void OnDrawGizmos()
     {
-        Debug.DrawRay(transform.position, transform.forward * 1,Color.red);
+        Debug.DrawRay(transform.position, MoveRot * RayDistance,Color.red);
     }
 }

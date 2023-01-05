@@ -29,6 +29,7 @@ public class GameManager : MonoBehaviour
     public Text NPCText;
     public NPC npc;
     public bool isText = false;
+    public List<NPC> IsQuestNum = new List<NPC>();
     void Awake()
     {
         instance = this;

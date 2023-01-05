@@ -140,6 +140,7 @@ public class Player : MonoBehaviour
                             state = GameManager.PlayerState.CanTalk;
                             Time.timeScale = 1;
                             GameManager.instance.NPCPanel.SetActive(false);
+                            
                             break;
                         }
                         GameManager.instance.NPCTexting(hit.collider.GetComponent<NPC>());
@@ -190,7 +191,7 @@ public class Player : MonoBehaviour
     }
     void Hide() //숨는 행동
     {
-        gameObject.GetComponent<CapsuleCollider>().enabled = false; //충돌 방지를 위해 콜라이더를 비활성화
+        gameObject.GetComponent<CapsuleCollider>().isTrigger = true; //충돌 방지를 위해 콜라이더를 트리거화
         Destroy(gameObject.GetComponent<Rigidbody>()); //추락 방지를 위해 리지드바디 삭제
         transform.position = useObject.transform.position; //숨을 오브젝트의 위치로 이동
         transform.eulerAngles = useObject.transform.eulerAngles; //숨을 오브젝트의 시야로 변환
@@ -198,7 +199,7 @@ public class Player : MonoBehaviour
     }
     void HideOff() //나오는 행동
     {
-        gameObject.GetComponent<CapsuleCollider>().enabled = true; //콜라이더를 다시 활성화
+        gameObject.GetComponent<CapsuleCollider>().isTrigger = false; //콜라이더를 콜리전화
         gameObject.AddComponent<Rigidbody>(); //리지드바디를 다시 생성하고
         rigid = GetComponent<Rigidbody>(); //리지드바디를 다시 대입해준 후
         rigid.freezeRotation = true; //리지드바디로 인해 변하는 각도를 고정
