@@ -25,7 +25,10 @@ public class GameManager : MonoBehaviour
     public bool haveKey = false; //ø≠ºË ¿Øπ´
 
     public GameObject NPCPanel; //NPC ¥ÎªÁ √¢
+    public Text NPCName;
     public Text NPCText;
+    public NPC npc;
+    public bool isText = false;
     void Awake()
     {
         instance = this;
@@ -38,7 +41,10 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        batery();
+        if (player.state != PlayerState.Talk)
+        {
+            batery();
+        }
     }
     void batery()
     {
@@ -61,16 +67,23 @@ public class GameManager : MonoBehaviour
     {
         print("ending");
     }
-    //public void NPCTextSetting()
-    //{
-    //    Time.timeScale = 0; //Ω√∞£ ∏ÿ√„
-    //    NPCPanel.SetActive(true);
-    //    NPCPanel.transform.GetChild(0).GetComponent<Text>().text = player.useObject.name;
-    //    player.useObject.GetComponent<NPC>().NPCTexting();
-    //}
-    //public void NPCTextEnd()
-    //{
-    //    Time.timeScale = 1;
-    //    NPCPanel.SetActive(false);
-    //}
+    public void NPCTexting(NPC Npc)
+    {
+        npc = Npc;
+        Time.timeScale = 0; //Ω√∞£ ∏ÿ√„
+        NPCPanel.SetActive(true);
+        NPCName.text = player.useObject.name;
+        player.state = PlayerState.Talk;
+        StartCoroutine(Texting());
+    }
+    public IEnumerator Texting()
+    {
+        isText = true;
+        for (int j = 0; j < npc.TextScript.Text[player.i].Length; j++)
+        {
+            NPCText.text = npc.TextScript.Text[player.i].Substring(0, j + 1);
+            yield return new WaitForSecondsRealtime(0.07f);
+        }
+        isText = false;
+    }
 }

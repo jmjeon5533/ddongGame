@@ -12,6 +12,8 @@ public class Player : MonoBehaviour
     public GameObject useObject; //사용 오브젝트 (유동적으로 지정)
     public GameManager.PlayerState state; //플레이어의 상태
     public PlayerStatus player;
+    public int i = 0;
+    //public Coroutine TextingCoroutine;
 
     float xRotate; //카메라 계산
     Vector3 HideOffPos; //숨고 나올 위치
@@ -20,6 +22,9 @@ public class Player : MonoBehaviour
 
     RaycastHit hit;
     public float RayDistance = 2; //사거리
+
+    // public FsmState;
+
     private void Start()
     {
         Cursor.visible = false; //커서 지우기
@@ -41,24 +46,34 @@ public class Player : MonoBehaviour
     }
     void StateMove()
     {
+        
         switch (state) {
             case GameManager.PlayerState.Normal: //노말 상태일 때
-                    Moving();
-                    DrawRay();
+                Moving();
+                DrawRay();
+                CamMove();
+                FlashLight();
+                StaminaSet();
                 break;
             case GameManager.PlayerState.CanHide: //숨을 수 있는 상태일 때
-                    Moving();
-                    DrawRay();
-                    if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
-                    {
-                        state = GameManager.PlayerState.Hide; //숨은 상태로 변환
-                        HideOffPos = transform.position; //현재 위치 저장
-                        Hide(); //숨는 행동 실행
-                        print("Hide");
-                    }
+                Moving();
+                DrawRay();
+                CamMove();
+                FlashLight();
+                StaminaSet();
+                if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+                {
+                    state = GameManager.PlayerState.Hide; //숨은 상태로 변환
+                    HideOffPos = transform.position; //현재 위치 저장
+                    Hide(); //숨는 행동 실행
+                    print("Hide");
+                }
                     break;
             case GameManager.PlayerState.Hide: //숨은 상태일 때 
-                    if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+                CamMove();
+                FlashLight();
+                StaminaSet();
+                if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
                     {
                         state = GameManager.PlayerState.CanHide; //숨을 수 있는 상태로 변환
                         HideOff(); //나오는 행동 실행
@@ -66,9 +81,12 @@ public class Player : MonoBehaviour
                     }
                 break;
             case GameManager.PlayerState.CanPick: //주울 수 있는 상태일 때
-                    Moving();
-                    DrawRay();
-                    if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
+                Moving();
+                DrawRay();
+                CamMove();
+                FlashLight();
+                StaminaSet();
+                if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
                     {
                         GameManager.instance.haveKey = true; //열쇠를 얻고
                         hit.collider.gameObject.SetActive(false); //열쇠를 지운다
@@ -77,6 +95,9 @@ public class Player : MonoBehaviour
             case GameManager.PlayerState.CanExit: //문 앞일때
                 Moving();
                 DrawRay();
+                CamMove();
+                FlashLight();
+                StaminaSet();
                 if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
                 {
                     if (GameManager.instance.haveKey && player.isQuest >= 3) //열쇠가 있고 퀘스트를 3개 클리어했을 때
@@ -92,17 +113,41 @@ public class Player : MonoBehaviour
             case GameManager.PlayerState.CanTalk: //NPC 앞일때
                 Moving();
                 DrawRay();
+                CamMove();
+                FlashLight();
+                StaminaSet();
                 if (Input.GetMouseButtonDown(0)) //상호작용을 눌렀을 때
                 {
-                    print("Text");
-                    //GameManager.instance.NPCTextSetting(); //시간을 멈추고 Text 진행
+                    print(hit.collider.name);
+                        i = 0;
+                    if(!GameManager.instance.isText)
+                        GameManager.instance.NPCTexting(hit.collider.GetComponent<NPC>()); //시간을 멈추고 Text 진행
+                    
                 }
                 break;
+            case GameManager.PlayerState.Talk:
+                if (Input.GetMouseButtonDown(0))
+                {
+                    if (!GameManager.instance.isText)
+                    {
+                        if (i + 1 < hit.collider.GetComponent<NPC>().TextScript.Text.Length)
+                        {
+                            i++;
 
+                        }
+                        else
+                        {
+                            state = GameManager.PlayerState.CanTalk;
+                            Time.timeScale = 1;
+                            GameManager.instance.NPCPanel.SetActive(false);
+                            break;
+                        }
+                        GameManager.instance.NPCTexting(hit.collider.GetComponent<NPC>());
+                    }
+                }
+                break;
         }
-        CamMove();
-        FlashLight();
-        StaminaSet();
+
     }
     IEnumerator CantExit()
     {

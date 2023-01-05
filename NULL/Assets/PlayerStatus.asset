@@ -16,7 +16,7 @@ MonoBehaviour:
   walkSpeed: 2
   RunSpeed: 5
   Stamina: 1000
-  Batery: 5000
+  Batery: 1374
   MaxBatery: 5000
   camSpeed: 2
   isflash: 0
