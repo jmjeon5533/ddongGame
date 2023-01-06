@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -25,10 +26,11 @@ public class GameManager : MonoBehaviour
     public bool haveKey = false; //열쇠 유무
 
     public GameObject NPCPanel; //NPC 대사 창
-    public Text NPCName;
-    public Text NPCText;
-    public NPC npc;
+    public Text NPCName; //NPC 이름
+    public Text NPCText; //NPC 대사
+    public NPC npc; //NPC 스크립트
     public bool isText = false;
+    public Image WarningPanel;
     public List<NPC> IsQuestNum = new List<NPC>();
     void Awake()
     {
@@ -63,10 +65,13 @@ public class GameManager : MonoBehaviour
     public void GameOver()
     {
         print("GameOver");
+        SceneLoader.instance.LoadScene(1);
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
     public void Ending()
     {
-        print("ending");
+        SceneLoader.instance.LoadScene(2);
     }
     public void NPCTexting(NPC Npc)
     {
